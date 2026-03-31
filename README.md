@@ -23,6 +23,12 @@ Launch the OpenClaw gateway using Docker Compose. The repository is mounted as a
 docker compose up -d
 ```
 
+**Gateway Mode Fix:** If startup logs show `gateway.mode=local (current: unset)` and the gateway fails to start, run:
+
+```bash
+docker exec -it openstudent-claw-openclaw openclaw config set gateway.mode local
+```
+
 **Note:** If you modify the startup script in `docker/openclaw-entrypoint.sh`, you must rebuild the image to apply changes:
 
 ```bash
@@ -38,6 +44,12 @@ docker exec -it openstudent-claw-openclaw openclaw models auth login --provider 
 ```
 
 Follow the interactive prompts to complete the browser-based authentication.
+
+If `openclaw models status` still shows a different default model (like Anthropic), set Codex as the default:
+
+```bash
+docker exec -it openstudent-claw-openclaw openclaw models set openai-codex/gpt-5.4
+```
 
 ### 4. Verify Setup
 
@@ -71,9 +83,19 @@ To use the Telegram channel, add it via the OpenClaw CLI. This stores the config
 docker compose run --rm openclaw openclaw channels add --channel telegram --token "<TELEGRAM_BOT_TOKEN>"
 ```
 
-### Verify Telegram Setup
+### 2. Pair with the Bot
 
-After adding the channel, verify that it's correctly configured and active:
+After adding the channel, message your bot on Telegram. OpenClaw will generate a pairing code and wait for approval. To approve the connection, run:
+
+```bash
+docker exec -it openstudent-claw-openclaw openclaw pairing approve telegram <PAIRING_CODE>
+```
+
+Example: `docker exec -it openstudent-claw-openclaw openclaw pairing approve telegram xxxx`
+
+### 3. Verify Telegram Setup
+
+After adding and pairing the channel, verify that it's correctly configured and active:
 
 ```bash
 # List all channels to see the Telegram entry

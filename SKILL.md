@@ -7,9 +7,15 @@ description: Access BSI student features (login, class schedule, attendance) via
 
 Use this skill to manage BSI e-learning student activities, such as logging in, viewing today's or the full class schedule, and performing attendance check-ins.
 
-This skill is mirrored into the OpenClaw workspace skill directory at startup (for example: `/home/node/.openclaw/workspace/skills/bsi_students`) with the minimal runnable project tree such as `SKILL.md`, `src/`, and key Bun/TypeScript config files when present.
+This skill is mirrored into the OpenClaw workspace skill directory at startup at `/home/node/.openclaw/workspace/skills/bsi_students` with the minimal runnable project tree such as `SKILL.md`, `src/`, and key Bun/TypeScript config files when present.
 
-The actual Bun scripts live in the mounted repository at `/openstudent-claw`. Run student commands from that mounted path, for example with `cd /openstudent-claw && bun ...`.
+All Bun script execution MUST run from the mirrored workspace skill directory: `/home/node/.openclaw/workspace/skills/bsi_students`.
+
+## Execution Rules (Mandatory)
+
+- MUST execute commands from `/home/node/.openclaw/workspace/skills/bsi_students`.
+- MUST NOT execute commands from `/openstudent-claw`.
+- MUST NOT copy this project to `/tmp` (or any temporary directory) and execute from there.
 
 ## Core Features
 
@@ -23,10 +29,10 @@ Used for authentication and obtaining session cookies, which are stored for subs
 # Using environment variables
 export BSI_USERNAME="your_nim"
 export BSI_PASSWORD="your_password"
-cd /openstudent-claw && bun src/scripts/students/login.ts
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/login.ts
 
 # Or using CLI arguments
-cd /openstudent-claw && bun src/scripts/students/login.ts <username> <password>
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/login.ts <username> <password>
 ```
 
 ### 2. Check Courses & Schedule
@@ -37,13 +43,13 @@ Used to view the list of courses. By default, it only displays active courses fo
 
 ```bash
 # Check today's schedule (including attendance status)
-cd /openstudent-claw && bun src/scripts/students/mata-kuliah.ts
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/mata-kuliah.ts
 
 # Check ALL schedules for this semester (alias: -a)
-cd /openstudent-claw && bun src/scripts/students/mata-kuliah.ts --semua
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/mata-kuliah.ts --semua
 
 # Check schedule without processing attendance status (alias: --no-absen)
-cd /openstudent-claw && bun src/scripts/students/mata-kuliah.ts --tanpa-absen
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/mata-kuliah.ts --tanpa-absen
 ```
 
 **Note:** This script requires an active session. If no session is found, run `login.ts` first.
@@ -57,10 +63,10 @@ Used to perform attendance check-ins for the currently active course.
 ```bash
 # Using environment variable
 export BSI_ABSEN_TOKEN="token_from_schedule"
-cd /openstudent-claw && bun src/scripts/students/absen-masuk.ts
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/absen-masuk.ts
 
 # Or using CLI arguments
-cd /openstudent-claw && bun src/scripts/students/absen-masuk.ts <absenPathToken>
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/absen-masuk.ts <absenPathToken>
 ```
 
 **Tip:** `absenPathToken` can be retrieved from the `mata-kuliah.ts` output under `item.absen.info.absenPathToken` or `item.absenPathToken`.
@@ -73,13 +79,13 @@ Used to view historical or today's attendance records for one or all courses.
 
 ```bash
 # Get ALL attendance history for a specific course
-cd /openstudent-claw && bun src/scripts/students/rekap-side.ts --absenPathToken 'eyJ...' --all
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/rekap-side.ts --absenPathToken 'eyJ...' --all
 
 # Get ONLY today's attendance status for a specific course
-cd /openstudent-claw && bun src/scripts/students/rekap-side.ts --absenPathToken 'eyJ...' --hari-ini
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/rekap-side.ts --absenPathToken 'eyJ...' --hari-ini
 
 # Get today's attendance status for ALL courses scheduled for today
-cd /openstudent-claw && bun src/scripts/students/rekap-side.ts --dari-jadwal --jadwal-hari-ini --hari-ini
+cd /home/node/.openclaw/workspace/skills/bsi_students && bun src/scripts/students/rekap-side.ts --dari-jadwal --jadwal-hari-ini --hari-ini
 ```
 
 **Response Data Structure:**

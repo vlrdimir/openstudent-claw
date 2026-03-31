@@ -1,0 +1,28 @@
+services:
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: openstudent-claw-openclaw
+    container_name: openstudent-claw-openclaw
+    working_dir: /openstudent-claw
+    entrypoint: ["/usr/local/bin/openclaw-entrypoint.sh"]
+    command: ["openclaw", "gateway"]
+    environment:
+      OPENSTUDENT_REPO: /openstudent-claw
+      OPENCLAW_WORKSPACE: /home/node/.openclaw/workspace
+      OPENCLAW_LOAD_SHELL_ENV: "1"
+      BSI_TLS_INSECURE: "1"
+      TURSO_URL: ${TURSO_URL:-}
+      TURSO_TOKEN: ${TURSO_TOKEN:-}
+    ports:
+      - "18789:18789"
+    volumes:
+      - ./:/openstudent-claw
+      - ./.agents/skills:/home/node/.openclaw/workspace/.agents/skills
+      - openclaw-home:/home/node/.openclaw
+    stdin_open: true
+    tty: true
+
+volumes:
+  openclaw-home:

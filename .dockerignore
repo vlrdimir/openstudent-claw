@@ -1,0 +1,8 @@
+.git
+.sisyphus
+node_modules
+.env
+.openclaw
+*.log
+dist
+coverage

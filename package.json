@@ -1,0 +1,39 @@
+{
+  "name": "openstudent-claw",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "tscheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix-dry-run",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "bun --env-file=.env drizzle-kit push",
+    "db:studio": "bun --env-file=.env drizzle-kit studio"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.24.0",
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/bun": "latest",
+    "eslint": "^9.24.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.2",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-prettier": "^5.2.6",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.29.1",
+    "drizzle-kit": "^0.31.10"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.2",
+    "drizzle-orm": "^0.45.2"
+  }
+}

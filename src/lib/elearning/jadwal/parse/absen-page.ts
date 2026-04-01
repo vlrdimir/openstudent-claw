@@ -31,7 +31,7 @@ export function parseAbsenPageHtml(
   absenPathToken: string,
 ): AbsenPageInfo {
   const meta = html.match(/<meta name="csrf-token" content="([^"]+)"/i);
-  const csrfToken = meta?.[1] ?? null;
+  let csrfToken = meta?.[1] ?? null;
 
   const kuliahBelumDimulai = /btn-danger[^>]*>[\s\S]{0,80}?Belum Mulai/i.test(
     html,
@@ -49,6 +49,9 @@ export function parseAbsenPageHtml(
   let bisaAbsenMasuk = false;
   if (formM) {
     const body = formM[1];
+    const formToken =
+      body?.match(/name="_token"\s+value="([^"]+)"/i)?.[1] ?? null;
+    if (formToken) csrfToken = formToken;
     if (body && /Absen Masuk/i.test(body)) {
       const pert = body.match(/name="pertemuan"\s+value="([^"]+)"/);
       const id = body.match(/name="id"\s+value="([^"]+)"/);

@@ -66,3 +66,24 @@ export function parseElearningCookiesFromResponse(
   if (!xsrfToken || !sessionToken) return null;
   return { xsrfToken, sessionToken, expiresAt };
 }
+
+export function mergeElearningSessionFromSetCookie(
+  base: ElearningSessionCookies,
+  response: Headers | Response,
+): ElearningSessionCookies {
+  const headers = response instanceof Response ? response.headers : response;
+  const lines = collectSetCookieLines(headers);
+  let xsrfToken = base.xsrfToken;
+  let sessionToken = base.sessionToken;
+  let expiresAt = base.expiresAt;
+  lines.forEach((line) => {
+    const parsed = parseOneSetCookie(line);
+    if (!parsed) return;
+    if (parsed.name === NAME_XSRF) xsrfToken = parsed.value;
+    if (parsed.name === NAME_SESSION) sessionToken = parsed.value;
+    if (parsed.expires && (!expiresAt || parsed.expires > expiresAt)) {
+      expiresAt = parsed.expires;
+    }
+  });
+  return { xsrfToken, sessionToken, expiresAt };
+}

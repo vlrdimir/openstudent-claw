@@ -1,4 +1,7 @@
-import type { ElearningSessionCookies } from "../../utils/parse-elearning-cookies.ts";
+import {
+  mergeElearningSessionFromSetCookie,
+  type ElearningSessionCookies,
+} from "../../utils/parse-elearning-cookies.ts";
 import { BSI_BASE_URL } from "../shared/config/constants.ts";
 import { bsiDocumentHeaders, bsiFetchTls } from "../shared/http/index.ts";
 import { parseAbsenPageHtml, type AbsenPageInfo } from "./parse/index.ts";
@@ -43,6 +46,7 @@ function bsiAuthenticatedPostFormInit(
       "content-type": "application/x-www-form-urlencoded",
       origin: BSI_BASE_URL,
       referer,
+      "x-xsrf-token": cookies.xsrfToken,
       ...extraHeaders,
     },
     body,
@@ -87,10 +91,10 @@ export function cekStatusAbsen(info: AbsenPageInfo): CekAbsenStatus {
   return buildCekAbsenStatus(info, null);
 }
 
-export async function fetchAbsenPage(
+async function fetchAbsenPageWithMergedCookies(
   cookies: ElearningSessionCookies,
   absenPathToken: string,
-): Promise<AbsenPageInfo> {
+): Promise<{ info: AbsenPageInfo; cookies: ElearningSessionCookies }> {
   const url = `${BSI_BASE_URL}/absen-mhs/${absenPathToken}`;
   const res = await fetch(
     url,
@@ -98,7 +102,22 @@ export async function fetchAbsenPage(
   );
   const html = await res.text();
   if (!res.ok) throw new Error(`fetch halaman absen: HTTP ${res.status}`);
-  return parseAbsenPageHtml(html, absenPathToken);
+  const merged = mergeElearningSessionFromSetCookie(cookies, res.headers);
+  return {
+    info: parseAbsenPageHtml(html, absenPathToken),
+    cookies: merged,
+  };
+}
+
+export async function fetchAbsenPage(
+  cookies: ElearningSessionCookies,
+  absenPathToken: string,
+): Promise<AbsenPageInfo> {
+  const { info } = await fetchAbsenPageWithMergedCookies(
+    cookies,
+    absenPathToken,
+  );
+  return info;
 }
 
 export async function fetchAbsenStatus(
@@ -136,8 +155,6 @@ export async function absenMasukAction(
   },
   now: Date = new Date(),
 ): Promise<AbsenMasukActionResult> {
-  const page =
-    input.page ?? (await fetchAbsenPage(cookies, input.absenPathToken));
   const tgl = tanggalHariIniLokal(now);
   let rekapHadir: boolean | null = null;
   try {
@@ -145,6 +162,18 @@ export async function absenMasukAction(
     rekapHadir = rekapSudahHadirPadaTanggal(r, tgl);
   } catch {
     rekapHadir = null;
+  }
+  let page: AbsenPageInfo;
+  let cookiesForPost = cookies;
+  if (input.page) {
+    page = input.page;
+  } else {
+    const r = await fetchAbsenPageWithMergedCookies(
+      cookies,
+      input.absenPathToken,
+    );
+    page = r.info;
+    cookiesForPost = r.cookies;
   }
   const cek = buildCekAbsenStatus(page, rekapHadir);
 
@@ -179,7 +208,7 @@ export async function absenMasukAction(
 
   const res = await fetch(
     `${BSI_BASE_URL}/mhs-absen`,
-    bsiAuthenticatedPostFormInit(cookies, body.toString(), referer),
+    bsiAuthenticatedPostFormInit(cookiesForPost, body.toString(), referer),
   );
 
   const loc = res.headers.get("Location") ?? res.headers.get("location");

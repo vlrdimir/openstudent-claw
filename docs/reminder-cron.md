@@ -39,7 +39,7 @@ If you rely on the stored account and session path, the account plus session row
 
 Optional scheduler-specific environment:
 
-- `REMINDER_CRON_SCHEDULE` — cron expression passed to `Bun.cron(...)`. Default `* * * * `*.
+- `REMINDER_CRON_SCHEDULE` — cron expression passed to `Bun.cron(...)`. Default `* * * * *`.
 - `REMINDER_CRON_TITLE` — unique Bun cron title. Default `reminder-poll`.
 - `REMINDER_CRON_WORKER` — override the worker module path registered with Bun. Default `src/scripts/reminder/reminder-cron-worker.ts`.
 
@@ -173,7 +173,7 @@ The per-class skip reasons in JSON include `class_not_started`, `class_finished`
 
 ## Dedupe behavior
 
-The dedupe contract is one reminder per `(accountId, absenPathToken, attendanceDateLocal)` after a delivery is marked `sent`.
+The dedupe contract is one reminder per `(accountId, courseNameSnapshot, courseTimeSnapshot, attendanceDateLocal)` after a delivery is marked `sent`.
 
 That means a later poll on the same local attendance date skips the item with `already_reminded` once the earlier send has been recorded as sent.
 

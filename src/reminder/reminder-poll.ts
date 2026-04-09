@@ -383,6 +383,7 @@ async function processClassReminder(
     input.attendanceDateLocal,
     input.mode,
   );
+  const courseTimeSnapshot = getCourseTimeSnapshot(input.classItem);
   let result: ReminderPollItemResult = {
     ...itemBase,
     eligible: false,
@@ -417,7 +418,8 @@ async function processClassReminder(
       getReminderDeliveryByDedupeKey
     )({
       accountId: input.account.id,
-      absenPathToken: input.classItem.absenPathToken,
+      courseNameSnapshot: input.classItem.nama,
+      courseTimeSnapshot,
       attendanceDateLocal: input.attendanceDateLocal,
     });
     result = {
@@ -488,10 +490,10 @@ async function processClassReminder(
       input.deps.claimPendingReminderDelivery ?? claimPendingReminderDelivery
     )({
       accountId: input.account.id,
+      courseNameSnapshot: input.classItem.nama,
+      courseTimeSnapshot,
       absenPathToken: input.classItem.absenPathToken,
       attendanceDateLocal: input.attendanceDateLocal,
-      courseNameSnapshot: input.classItem.nama,
-      courseTimeSnapshot: getCourseTimeSnapshot(input.classItem),
       telegramChatId: input.chatId,
     });
     result = {
@@ -543,7 +545,8 @@ async function processClassReminder(
         input.deps.markReminderDeliveryFailed ?? markReminderDeliveryFailed
       )({
         accountId: input.account.id,
-        absenPathToken: input.classItem.absenPathToken,
+        courseNameSnapshot: input.classItem.nama,
+        courseTimeSnapshot,
         attendanceDateLocal: input.attendanceDateLocal,
         lastError: sendResult.error,
       });
@@ -568,7 +571,8 @@ async function processClassReminder(
       input.deps.markReminderDeliverySent ?? markReminderDeliverySent
     )({
       accountId: input.account.id,
-      absenPathToken: input.classItem.absenPathToken,
+      courseNameSnapshot: input.classItem.nama,
+      courseTimeSnapshot,
       attendanceDateLocal: input.attendanceDateLocal,
     });
 

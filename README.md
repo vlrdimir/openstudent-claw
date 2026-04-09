@@ -145,7 +145,7 @@ The per-class skip reasons in JSON reflect those checks, including `class_not_st
 
 ### Dedupe behavior
 
-The dedupe contract is one reminder per `(accountId, absenPathToken, attendanceDateLocal)` after a delivery is marked `sent`.
+The dedupe contract is one reminder per `(accountId, courseNameSnapshot, courseTimeSnapshot, attendanceDateLocal)` after a delivery is marked `sent`.
 
 That means a later poll on the same local attendance date skips the item with `already_reminded` once the earlier send has been recorded as sent.
 

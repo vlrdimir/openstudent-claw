@@ -4,6 +4,7 @@ import {
   listReminderPollFixtureScenarios,
   type ReminderPollFixtureScenarioName,
 } from "../../reminder/reminder-poll-fixture.ts";
+import { validateReminderEnv } from "../../reminder/reminder-env.ts";
 
 type CliParseResult =
   | {
@@ -160,6 +161,23 @@ try {
         stateFile: parsedArgs.value.fixtureStateFile,
       })
     : null;
+
+  if (!fixture) {
+    const envValidation = validateReminderEnv(
+      parsedArgs.value.dryRun ? "poll-fake" : "poll-real",
+      process.env,
+    );
+
+    if (!envValidation.ok) {
+      printJson({
+        ok: false,
+        code: "env_validation_failed" as const,
+        error: envValidation.error,
+        fields: envValidation.fields,
+      });
+      process.exit(1);
+    }
+  }
 
   const result = await runSingleAccountReminderPoll({
     ...(fixture?.runInput ?? {}),

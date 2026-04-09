@@ -66,4 +66,10 @@ if [ ! -e "${AGENTS_SKILLS_DIR}" ] && [ -d "${REPO_DIR}/.agents/skills" ]; then
   ln -s "${REPO_DIR}/.agents/skills" "${AGENTS_SKILLS_DIR}"
 fi
 
+if [ "$#" -ge 2 ] && [ "$1" = "openclaw" ] && [ "$2" = "gateway" ]; then
+  if ! openclaw config get gateway.mode >/dev/null 2>&1; then
+    openclaw config set gateway.mode local >/dev/null
+  fi
+fi
+
 exec "$@"

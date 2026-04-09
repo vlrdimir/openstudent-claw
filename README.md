@@ -23,12 +23,6 @@ Launch the OpenClaw gateway using Docker Compose. The repository is mounted as a
 docker compose up -d
 ```
 
-**Gateway Mode Fix:** If startup logs show `gateway.mode=local (current: unset)` and the gateway fails to start, run:
-
-```bash
-docker exec -it openstudent-claw-openclaw openclaw config set gateway.mode local
-```
-
 **Note:** If you modify the startup script in `docker/openclaw-entrypoint.sh`, you must rebuild the image to apply changes:
 
 ```bash
@@ -107,3 +101,58 @@ docker exec -it openstudent-claw-openclaw openclaw channels status --channel tel
 # View logs to ensure there are no connection errors
 docker exec -it openstudent-claw-openclaw openclaw channels logs --channel telegram
 ```
+
+## Reminder Poll Operator Contract
+
+`bun src/scripts/reminder/reminder-poll.ts` is a one-shot CLI. It checks one account, evaluates today's active classes, prints one JSON result to stdout, then exits. It is meant to be invoked by an external scheduler every minute, not kept running as an internal daemon.
+
+Full reminder-cron operational documentation lives in:
+
+- [`docs/reminder-cron.md`](./docs/reminder-cron.md)
+
+### Required environment
+
+The reminder poll is single-account and Telegram-only.
+
+- `BSI_USERNAME` is required. The poll resolves exactly one account from this username, and the dedupe key depends on that account id.
+- `TELEGRAM_BOT_TOKEN` is required for real sends.
+- `TELEGRAM_CHAT_ID` is required for real sends.
+- Session access must come from one of these sources:
+  - `BSI_XSRF_TOKEN` and `BSI_SESSION_TOKEN`, or
+  - an existing stored session for the same `BSI_USERNAME` account in the database.
+
+If you rely on the stored account and session path, the database connection env from the rest of this README must already be set and the account plus session rows must already exist.
+
+### One-shot invocation
+
+Run a single polling cycle with:
+
+```bash
+bun src/scripts/reminder/reminder-poll.ts
+```
+
+For OS-level Bun cron registration, listing, removal, worker behavior, and scheduler-specific environment, see [`docs/reminder-cron.md`](./docs/reminder-cron.md).
+
+### Polling rules
+
+- Single-account scope only. The poller reads one username from `BSI_USERNAME` and does not fan out across multiple accounts.
+- Telegram-only scope only. There is no other delivery channel in this CLI.
+- Start-only behavior. A reminder is eligible only after the class has started.
+- No end-of-class or repeated reminder stages. If the class is already finished, the item is skipped.
+- Already attended items are skipped.
+
+The per-class skip reasons in JSON reflect those checks, including `class_not_started`, `class_finished`, `already_attended`, and `already_reminded`.
+
+### Dedupe behavior
+
+The dedupe contract is one reminder per `(accountId, absenPathToken, attendanceDateLocal)` after a delivery is marked `sent`.
+
+That means a later poll on the same local attendance date skips the item with `already_reminded` once the earlier send has been recorded as sent.
+
+### Failure behavior
+
+Fatal operator errors return `ok: false` and exit non-zero. This includes missing `BSI_USERNAME`, a missing account row for that username, missing session access, invalid Telegram config, or a fatal failure while fetching today's active schedule.
+
+Per-item failures do not abort the whole polling cycle. The run can still return `ok: true` with item entries marked `failed` in `items[]`, for example when a status check fails, Telegram send fails for one class, or reminder-delivery store updates fail for one class.
+
+Operators should treat stdout JSON as the primary contract. The top-level `ok` and `counts` fields tell you whether the run failed fatally or completed with mixed item results.

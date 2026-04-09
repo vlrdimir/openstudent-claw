@@ -10,6 +10,7 @@ import {
   rekapSudahHadirPadaTanggal,
   tanggalHariIniLokal,
 } from "./rekap-side.ts";
+import { assertAuthenticatedElearningDocument } from "./session-invalid.ts";
 
 function elearningCookieHeader(c: ElearningSessionCookies): string {
   return [`XSRF-TOKEN=${c.xsrfToken}`, `mybest_session=${c.sessionToken}`].join(
@@ -101,6 +102,11 @@ async function fetchAbsenPageWithMergedCookies(
     bsiAuthenticatedGetInit(cookies, { referer: `${BSI_BASE_URL}/sch` }),
   );
   const html = await res.text();
+  assertAuthenticatedElearningDocument({
+    response: res,
+    html,
+    context: `fetch halaman absen (${absenPathToken})`,
+  });
   if (!res.ok) throw new Error(`fetch halaman absen: HTTP ${res.status}`);
   const merged = mergeElearningSessionFromSetCookie(cookies, res.headers);
   return {

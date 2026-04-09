@@ -8,13 +8,14 @@ services:
     working_dir: /openstudent-claw
     entrypoint: ["/usr/local/bin/openclaw-entrypoint.sh"]
     command: ["openclaw", "gateway"]
+    env_file:
+      - .env
     environment:
       OPENSTUDENT_REPO: /openstudent-claw
       OPENCLAW_WORKSPACE: /home/node/.openclaw/workspace
       OPENCLAW_LOAD_SHELL_ENV: "1"
-      BSI_TLS_INSECURE: "1"
-      TURSO_URL: ${TURSO_URL:-}
-      TURSO_TOKEN: ${TURSO_TOKEN:-}
+      BSI_TLS_INSECURE: ${BSI_TLS_INSECURE:-1}
+
     ports:
       - "18789:18789"
     volumes:

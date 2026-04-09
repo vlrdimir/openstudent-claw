@@ -1,4 +1,5 @@
 import type { ElearningSessionCookies } from "../../utils/parse-elearning-cookies.ts";
+import { formatJakartaLocalDate } from "../../utils/jakarta-time.ts";
 import { BSI_BASE_URL } from "../shared/config/constants.ts";
 import { bsiDocumentHeaders } from "../shared/http/default-headers.ts";
 import { bsiFetchTls } from "../shared/http/tls-fetch.ts";
@@ -126,8 +127,7 @@ export async function fetchRekapAbsenSide(
 }
 
 export function tanggalHariIniLokal(now: Date = new Date()): string {
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  return formatJakartaLocalDate(now);
 }
 
 export function filterRekapSideDataHariIni(

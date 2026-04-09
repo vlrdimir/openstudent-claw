@@ -4,6 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "reminder:env:check": "bun src/scripts/reminder/reminder-env-check.ts",
+    "reminder:cron:list": "bun src/scripts/reminder/reminder-cron-list.ts",
+    "reminder:cron:register": "bun src/scripts/reminder/reminder-cron-register.ts",
+    "reminder:cron:remove": "bun src/scripts/reminder/reminder-cron-remove.ts",
+    "reminder:poll": "bun --env-file=.env src/scripts/reminder/reminder-poll.ts",
     "tscheck": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "format": "prettier . --write",
@@ -34,6 +39,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.2",
+    "zod": "^4.3.6"
   }
 }

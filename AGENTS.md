@@ -29,6 +29,12 @@ Entry point CLI per domain mahasiswa (login, jadwal, dll.).
 
 ---
 
+## `src/scripts/reminder/`
+
+CLI reminder (poll satu akun, pengecekan env, registrasi/list/remove Bun OS cron, worker). Pola sama dengan skrip lain: tipis, JSON ke stdout; impor dari `../../lib/...` atau `../../reminder/...`.
+
+---
+
 ## `src/lib/elearning/`
 
 Modul integrasi **e-learning BSI** (`elearning.bsi.ac.id`). Struktur saat ini memakai pola **feature + internal shared implementation**:

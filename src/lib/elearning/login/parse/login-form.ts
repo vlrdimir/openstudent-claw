@@ -20,6 +20,12 @@ function extractCaptchaQuestion(html: string): string | null {
   return m?.[1]?.trim() ?? null;
 }
 
+export function looksLikeBsiLoginPageHtml(html: string): boolean {
+  return (
+    extractCsrfToken(html) !== null && extractCaptchaQuestion(html) !== null
+  );
+}
+
 export function solveCaptchaAddition(question: string): number | null {
   const m = question.match(/(\d+)\s*\+\s*(\d+)/);
   if (!m) return null;

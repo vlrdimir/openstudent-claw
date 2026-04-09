@@ -13,6 +13,7 @@ import {
   rekapSudahHadirPadaTanggal,
   tanggalHariIniLokal,
 } from "./rekap-side.ts";
+import { assertAuthenticatedElearningDocument } from "./session-invalid.ts";
 
 const SCH_URL = `${BSI_BASE_URL}/sch`;
 
@@ -47,6 +48,11 @@ export async function fetchMataKuliahJadwal(
     }),
   );
   const html = await res.text();
+  assertAuthenticatedElearningDocument({
+    response: res,
+    html,
+    context: "fetch jadwal (/sch)",
+  });
   if (!res.ok) throw new Error(`fetch jadwal (/sch): HTTP ${res.status}`);
   return parseMataKuliahFromSchHtml(html);
 }

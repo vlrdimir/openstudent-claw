@@ -67,6 +67,7 @@ type ReminderPollFixtureState = {
   version: 1;
   deliveries: Record<string, FixtureDeliveryState>;
   sendAttempts: Record<string, number>;
+  classTokenSequence: number;
 };
 
 const DEFAULT_NOW_ISO = "2026-04-08T07:30:00+07:00";
@@ -182,15 +183,17 @@ function cloneDefaultState(): ReminderPollFixtureState {
     version: 1,
     deliveries: {},
     sendAttempts: {},
+    classTokenSequence: 0,
   };
 }
 
 function dedupeKey(input: {
   accountId: number;
-  absenPathToken: string;
+  courseNameSnapshot: string;
+  courseTimeSnapshot: string;
   attendanceDateLocal: string;
 }): string {
-  return `${input.accountId}:${input.absenPathToken}:${input.attendanceDateLocal}`;
+  return `${input.accountId}:${input.courseNameSnapshot}:${input.courseTimeSnapshot}:${input.attendanceDateLocal}`;
 }
 
 function requireScenario(
@@ -221,6 +224,7 @@ async function readState(
     version: 1,
     deliveries: parsed.deliveries ?? {},
     sendAttempts: parsed.sendAttempts ?? {},
+    classTokenSequence: parsed.classTokenSequence ?? 0,
   };
 }
 
@@ -284,11 +288,13 @@ async function sendFixtureTelegramReminder(input: {
 }): Promise<TelegramReminderSendResult> {
   const mode = input.mode ?? FIXTURE_SCENARIOS[input.scenario].mode;
   const chatId = input.env.TELEGRAM_CHAT_ID?.trim() || DEFAULT_CHAT_ID;
+  const courseTimeSnapshot = `${FIXTURE_CLASS.jamMulai}-${FIXTURE_CLASS.jamSelesai}`;
 
   if (input.scenario === "send-failure-retry") {
     const key = dedupeKey({
       accountId: FIXTURE_ACCOUNT.id,
-      absenPathToken: input.reminder.absenPathToken,
+      courseNameSnapshot: FIXTURE_CLASS.nama,
+      courseTimeSnapshot,
       attendanceDateLocal: input.reminder.attendanceDateLocal,
     });
     const state = await readState(input.stateFile);
@@ -389,6 +395,24 @@ function buildFixtureDependencies(input: {
         throw new ElearningSessionInvalidError(
           "fetch jadwal (/sch): session e-learning tidak valid atau sudah kedaluwarsa (halaman login terdeteksi).",
         );
+      }
+
+      if (
+        scenario === "duplicate-poll-skip" ||
+        scenario === "send-failure-retry"
+      ) {
+        const state = await getState();
+        state.classTokenSequence += 1;
+        await saveState(state);
+        const nextToken = `fake-absen-token-${state.classTokenSequence}`;
+
+        return [
+          {
+            ...FIXTURE_CLASS,
+            absenPathToken: nextToken,
+            absenUrl: `https://elearning.bsi.ac.id/absen-mhs/${nextToken}`,
+          },
+        ];
       }
 
       return [FIXTURE_CLASS];

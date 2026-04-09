@@ -8,13 +8,13 @@ export type ReminderDeliveryStatus = "pending" | "sent" | "failed";
 
 export type ReminderDeliveryDedupeKey = {
   accountId: number;
-  absenPathToken: string;
+  courseNameSnapshot: string;
+  courseTimeSnapshot: string;
   attendanceDateLocal: string;
 };
 
 export type ClaimPendingReminderDeliveryInput = ReminderDeliveryDedupeKey & {
-  courseNameSnapshot: string;
-  courseTimeSnapshot: string;
+  absenPathToken: string;
   telegramChatId: string;
 };
 
@@ -34,7 +34,8 @@ export type MarkReminderDeliveryFailedInput = ReminderDeliveryDedupeKey & {
 function reminderDeliveryDedupeWhere(input: ReminderDeliveryDedupeKey) {
   return and(
     eq(reminderDeliveries.accountId, input.accountId),
-    eq(reminderDeliveries.absenPathToken, input.absenPathToken),
+    eq(reminderDeliveries.courseNameSnapshot, input.courseNameSnapshot),
+    eq(reminderDeliveries.courseTimeSnapshot, input.courseTimeSnapshot),
     eq(reminderDeliveries.attendanceDateLocal, input.attendanceDateLocal),
   );
 }
@@ -61,9 +62,22 @@ export async function getReminderDeliveryByDedupeKey(
   input: ReminderDeliveryDedupeKey,
 ): Promise<ReminderDeliveryRow | undefined> {
   const db = getDb();
-  return db.query.reminderDeliveries.findFirst({
+  const rows = await db.query.reminderDeliveries.findMany({
     where: reminderDeliveryDedupeWhere(input),
   });
+
+  return rows.sort((left, right) => {
+    const statusRank = (status: string) => {
+      if (status === "sent") return 0;
+      if (status === "pending") return 1;
+      return 2;
+    };
+
+    const rankDiff = statusRank(left.status) - statusRank(right.status);
+    if (rankDiff !== 0) return rankDiff;
+
+    return right.updatedAt.getTime() - left.updatedAt.getTime();
+  })[0];
 }
 
 async function requireReminderDeliveryByDedupeKey(

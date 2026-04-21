@@ -2,6 +2,12 @@
 
 This repository contains the BSI Student automation logic and is designed to run as a managed skill within the OpenClaw framework.
 
+## Preview
+
+<p align="center">
+  <img src="./docs/image.png" alt="Telegram reminder notification example" />
+</p>
+
 ## Quick Start (Docker)
 
 The project uses Docker to provide a consistent environment with OpenClaw and Bun pre-installed.
